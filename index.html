@@ -58,9 +58,9 @@
 
     <!-- Dashboard Utama -->
     <div id="appSection" class="hidden space-y-6">
-      <!-- Form Tambah Jadwal -->
+      <!-- Form Tambah Jadwal & Kirim Langsung -->
       <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
-        <h2 class="font-bold text-lg mb-4">Buat Jadwal Reminder Baru</h2>
+        <h2 class="font-bold text-lg mb-4">Buat Jadwal / Kirim Langsung</h2>
         <form id="reminderForm" onsubmit="saveReminder(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium mb-1">Nama Penerima</label>
@@ -76,7 +76,7 @@
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Tanggal & Jam Kirim</label>
+            <label class="block text-sm font-medium mb-1">Tanggal & Jam Kirim <span class="text-xs text-slate-400">(untuk jadwal)</span></label>
             <input id="scheduledAt" type="datetime-local" required class="w-full px-3 py-2 border rounded-lg text-sm" />
           </div>
           <div>
@@ -92,12 +92,18 @@
             <label class="block text-sm font-medium mb-1">Isi Pesan</label>
             <textarea id="messageText" rows="3" required placeholder="Tulis pesan reminder di sini..." class="w-full px-3 py-2 border rounded-lg text-sm"></textarea>
           </div>
-          <div class="md:col-span-2 flex justify-end">
+          <div class="md:col-span-2 flex flex-wrap justify-end gap-2">
+            <button type="button" id="btnDirectSend" onclick="sendNow()" class="px-4 py-2 bg-sky-600 text-white text-sm font-medium rounded-lg hover:bg-sky-700">
+              ⚡ Tes Kirim Sekarang
+            </button>
             <button type="submit" id="btnSave" class="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700">
               + Simpan Jadwal
             </button>
           </div>
         </form>
+
+        <!-- Hasil Konfirmasi Kirim Langsung -->
+        <div id="directResult" class="hidden mt-4 p-3 rounded-lg text-sm border"></div>
       </div>
 
       <!-- Daftar Jadwal -->
@@ -188,6 +194,47 @@
       let val = el.value.replace(/[^0-9]/g, '');
       if (val.startsWith('0')) val = '62' + val.slice(1);
       el.value = val;
+    }
+
+    async function sendNow() {
+      const phone = document.getElementById('phoneNumber').value.replace(/[^0-9]/g, '');
+      const message = document.getElementById('messageText').value.trim();
+      const resBox = document.getElementById('directResult');
+      const btn = document.getElementById('btnDirectSend');
+
+      if (!phone || !message) {
+        alert('Isi Nomor WhatsApp dan Isi Pesan terlebih dahulu untuk tes kirim langsung.');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Mengirim...';
+      resBox.classList.add('hidden');
+
+      try {
+        const { data, error } = await sb.functions.invoke('send-reminders', {
+          body: { direct: true, target: phone, message: message }
+        });
+
+        resBox.classList.remove('hidden');
+        if (error) {
+          resBox.className = 'mt-4 p-3 rounded-lg text-sm border bg-rose-50 border-rose-200 text-rose-700';
+          resBox.textContent = '❌ Error Edge Function: ' + error.message;
+        } else if (data?.status === false) {
+          resBox.className = 'mt-4 p-3 rounded-lg text-sm border bg-amber-50 border-amber-200 text-amber-800';
+          resBox.textContent = '⚠️ Ditolak Fonnte: ' + (data.reason || JSON.stringify(data));
+        } else {
+          resBox.className = 'mt-4 p-3 rounded-lg text-sm border bg-emerald-50 border-emerald-200 text-emerald-800';
+          resBox.textContent = '✅ Berhasil dikirim ke Fonnte! Detail: ' + (data?.detail || JSON.stringify(data));
+        }
+      } catch (err) {
+        resBox.classList.remove('hidden');
+        resBox.className = 'mt-4 p-3 rounded-lg text-sm border bg-rose-50 border-rose-200 text-rose-700';
+        resBox.textContent = '❌ Gagal menghubungi server: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '⚡ Tes Kirim Sekarang';
+      }
     }
 
     async function saveReminder(e) {
