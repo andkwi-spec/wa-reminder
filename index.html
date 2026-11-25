@@ -63,13 +63,13 @@
         <h2 class="font-bold text-lg mb-4">Buat Jadwal / Kirim Langsung</h2>
         <form id="reminderForm" onsubmit="saveReminder(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium mb-1">Nama Penerima</label>
-            <input id="recipientName" type="text" required placeholder="Contoh: Budi" class="w-full px-3 py-2 border rounded-lg text-sm" />
+            <label class="block text-sm font-medium mb-1">Nama Penerima / Grup</label>
+            <input id="recipientName" type="text" required placeholder="Contoh: Budi atau Grup Kantor" class="w-full px-3 py-2 border rounded-lg text-sm" />
           </div>
           <div>
-            <label class="block text-sm font-medium mb-1">Nomor WhatsApp (awalan 62)</label>
+            <label class="block text-sm font-medium mb-1">Nomor WA (62...) atau ID Grup (@g.us)</label>
             <div class="flex gap-2">
-              <input id="phoneNumber" type="text" required placeholder="6281234567890" class="w-full px-3 py-2 border rounded-lg text-sm" />
+              <input id="phoneNumber" type="text" required placeholder="6281234567890 atau 120363...@g.us" class="w-full px-3 py-2 border rounded-lg text-sm" />
               <button type="button" onclick="formatPhone()" class="px-2.5 py-2 text-xs bg-slate-100 border rounded-lg hover:bg-slate-200 whitespace-nowrap">
                 08 → 62
               </button>
@@ -189,21 +189,28 @@
       checkSession();
     }
 
+    function cleanTarget(val) {
+      const trimmed = val.trim();
+      if (trimmed.includes('@g.us')) return trimmed;
+      return trimmed.replace(/[^0-9]/g, '');
+    }
+
     function formatPhone() {
       const el = document.getElementById('phoneNumber');
+      if (el.value.includes('@g.us')) return;
       let val = el.value.replace(/[^0-9]/g, '');
       if (val.startsWith('0')) val = '62' + val.slice(1);
       el.value = val;
     }
 
     async function sendNow() {
-      const phone = document.getElementById('phoneNumber').value.replace(/[^0-9]/g, '');
+      const phone = cleanTarget(document.getElementById('phoneNumber').value);
       const message = document.getElementById('messageText').value.trim();
       const resBox = document.getElementById('directResult');
       const btn = document.getElementById('btnDirectSend');
 
       if (!phone || !message) {
-        alert('Isi Nomor WhatsApp dan Isi Pesan terlebih dahulu untuk tes kirim langsung.');
+        alert('Isi Nomor WA / ID Grup dan Isi Pesan terlebih dahulu untuk tes kirim langsung.');
         return;
       }
 
@@ -245,7 +252,7 @@
 
       const payload = {
         recipient_name: document.getElementById('recipientName').value.trim(),
-        phone_number: document.getElementById('phoneNumber').value.replace(/[^0-9]/g, ''),
+        phone_number: cleanTarget(document.getElementById('phoneNumber').value),
         message: document.getElementById('messageText').value.trim(),
         scheduled_at: new Date(document.getElementById('scheduledAt').value).toISOString(),
         recurrence: document.getElementById('recurrence').value,
