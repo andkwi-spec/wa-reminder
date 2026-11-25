@@ -212,7 +212,7 @@
       resBox.classList.add('hidden');
 
       try {
-        const { data, error } = await sb.functions.invoke('send-reminders', {
+        const { data, error } = await sb.functions.invoke('send-reminder', {
           body: { direct: true, target: phone, message: message }
         });
 
