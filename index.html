@@ -3,1821 +3,295 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WA Reminder Automation — Dashboard</title>
-
-  <!-- Google Fonts: Inter -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
-  <!-- Tailwind CSS CDN -->
+  <title>WA Reminder Automation</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-          },
-          colors: {
-            wa: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-            }
-          }
-        }
-      }
-    };
-  </script>
-
-  <!-- Lucide Icons CDN -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Supabase JS SDK v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans">
 
-  <!-- ==================== NAVBAR / HEADER ==================== -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-wrap items-center justify-between gap-3 py-3.5">
-        <!-- Brand Logo -->
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-sm">
-            <i data-lucide="message-square-clock" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <div class="flex items-center gap-2">
-              <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">WA Reminder</h1>
-              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Automation
-              </span>
-            </div>
-            <p class="text-xs text-slate-500">Penjadwalan Pesan WhatsApp Otomatis</p>
-          </div>
-        </div>
-
-        <!-- Right Controls -->
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Mode Status Pill -->
-          <button
-            id="btnModePill"
-            type="button"
-            onclick="openSettingsModal()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer"
-            title="Klik untuk mengganti mode operasi"
-          >
-            <span id="modeDot" class="w-2 h-2 rounded-full"></span>
-            <span id="modeLabel">Mode Demo</span>
-          </button>
-
-          <!-- Backend Setup Guide Button -->
-          <button
-            type="button"
-            onclick="openGuideModal()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
-          >
-            <i data-lucide="code-2" class="w-4 h-4 text-emerald-600"></i>
-            <span class="hidden md:inline">Panduan Backend</span>
-          </button>
-
-          <!-- Settings Button -->
-          <button
-            type="button"
-            onclick="openSettingsModal()"
-            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
-            title="Pengaturan Koneksi"
-          >
-            <i data-lucide="settings" class="w-4 h-4"></i>
-            <span class="hidden md:inline">Pengaturan</span>
-          </button>
-
-          <!-- Logout Button (Only shown when logged in on Supabase Mode) -->
-          <button
-            id="btnLogout"
-            type="button"
-            onclick="handleLogout()"
-            class="hidden inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
-            title="Keluar dari akun Supabase"
-          >
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Keluar</span>
-          </button>
-        </div>
+  <!-- Navbar -->
+  <nav class="bg-white border-b border-slate-200 px-4 py-3 sticky top-0 z-10">
+    <div class="max-w-4xl mx-auto flex justify-between items-center">
+      <div class="flex items-center gap-2 font-bold text-lg text-emerald-600">
+        <span>📱</span> WA Reminder
       </div>
-    </div>
-  </header>
-
-  <!-- ==================== AUTH GATE (SUPABASE LOGIN) ==================== -->
-  <section id="authSection" class="hidden flex-1 flex items-center justify-center px-4 py-12">
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
-      <div class="text-center mb-6">
-        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3 border border-emerald-100">
-          <i data-lucide="shield-check" class="w-6 h-6"></i>
-        </div>
-        <h2 class="text-xl font-bold text-slate-900">Login Dashboard Produksi</h2>
-        <p class="text-sm text-slate-500 mt-1">Masuk menggunakan akun Supabase Auth untuk mengelola jadwal reminder Anda secara aman.</p>
-      </div>
-
-      <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
-        <div>
-          <label for="loginEmail" class="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
-          <input
-            id="loginEmail"
-            type="email"
-            required
-            placeholder="admin@domainkamu.com"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          />
-        </div>
-        <div>
-          <label for="loginPassword" class="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
-          <input
-            id="loginPassword"
-            type="password"
-            required
-            placeholder="••••••••"
-            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-          />
-        </div>
-
-        <button
-          id="btnLoginSubmit"
-          type="submit"
-          class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <i data-lucide="log-in" class="w-4 h-4"></i>
-          <span>Masuk ke Dashboard</span>
+      <div class="flex items-center gap-2">
+        <button onclick="openSettings()" class="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-100">
+          ⚙️ Pengaturan
         </button>
-      </form>
-
-      <div class="mt-6 pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-        <button type="button" onclick="openSettingsModal()" class="text-emerald-600 hover:underline font-medium cursor-pointer">
-          Ubah URL / Anon Key
-        </button>
-        <button type="button" onclick="switchToDemoMode()" class="text-slate-600 hover:text-slate-900 hover:underline cursor-pointer">
-          Kembali ke Mode Demo
+        <button id="btnLogout" onclick="logout()" class="hidden text-sm px-3 py-1.5 rounded-lg bg-rose-50 text-rose-600 hover:bg-rose-100">
+          Keluar
         </button>
       </div>
     </div>
-  </section>
+  </nav>
 
-  <!-- ==================== MAIN DASHBOARD ==================== -->
-  <main id="dashboardSection" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-    <!-- Demo Mode Banner -->
-    <div id="demoBanner" class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="flex items-start gap-3">
-        <div class="p-2 rounded-xl bg-emerald-100 text-emerald-700 shrink-0">
-          <i data-lucide="sparkles" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h3 class="text-sm font-semibold text-emerald-900">Anda sedang menggunakan Mode Demo (Penyimpanan Lokal)</h3>
-          <p class="text-xs sm:text-sm text-emerald-800/90 mt-0.5">
-            Semua fitur bisa dicoba langsung dan tersimpan di browser Anda. Untuk pengiriman WhatsApp otomatis 24/7, hubungkan ke Supabase.
-          </p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 shrink-0">
-        <button
-          type="button"
-          onclick="openGuideModal()"
-          class="px-3.5 py-2 rounded-xl bg-white hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-semibold transition cursor-pointer"
-        >
-          Lihat Panduan Setup
-        </button>
-        <button
-          type="button"
-          onclick="openSettingsModal()"
-          class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm transition cursor-pointer"
-        >
-          Hubungkan Supabase
-        </button>
-      </div>
-    </div>
-
-    <!-- Supabase Connected User Banner -->
-    <div id="supabaseUserBanner" class="hidden bg-white border border-slate-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 shadow-sm">
-      <div class="flex items-center gap-2.5 text-sm">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-        <span class="text-slate-600">Terhubung ke Supabase sebagai:</span>
-        <span id="loggedInEmail" class="font-semibold text-slate-900">-</span>
-      </div>
-      <button
-        type="button"
-        onclick="loadReminders()"
-        class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-lg transition cursor-pointer"
-      >
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-        Sinkronkan Data
+  <main class="max-w-4xl mx-auto p-4 mt-4">
+    <!-- Pesan belum konfigurasi -->
+    <div id="setupNotice" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-6 text-center">
+      <h2 class="font-bold text-amber-800 text-lg mb-2">Hubungkan ke Supabase</h2>
+      <p class="text-sm text-amber-700 mb-4">Masukkan Project URL dan Publishable Key Supabase kamu untuk mulai menggunakan aplikasi.</p>
+      <button onclick="openSettings()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700">
+        Buka Pengaturan
       </button>
     </div>
 
-    <!-- ==================== SUMMARY STATS (3 CARDS) ==================== -->
-    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      <!-- Pending Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
+    <!-- Layar Login -->
+    <div id="loginSection" class="hidden max-w-md mx-auto bg-white p-6 rounded-xl shadow-sm border border-slate-200 mt-8">
+      <h2 class="text-xl font-bold mb-1">Masuk ke Dashboard</h2>
+      <p class="text-sm text-slate-500 mb-5">Gunakan akun yang dibuat di Supabase Authentication.</p>
+      <form onsubmit="handleLogin(event)" class="space-y-4">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Menunggu (Pending)</p>
-          <p id="statPending" class="text-3xl font-bold text-slate-900 mt-1">0</p>
-          <p class="text-xs text-amber-600 mt-1 font-medium">Terjadwal untuk dikirim</p>
+          <label class="block text-sm font-medium mb-1">Email</label>
+          <input id="loginEmail" type="email" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
-        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center border border-amber-100">
-          <i data-lucide="clock" class="w-6 h-6"></i>
-        </div>
-      </div>
-
-      <!-- Sent Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Terkirim (Sent)</p>
-          <p id="statSent" class="text-3xl font-bold text-slate-900 mt-1">0</p>
-          <p class="text-xs text-emerald-600 mt-1 font-medium">Berhasil diproses</p>
+          <label class="block text-sm font-medium mb-1">Password</label>
+          <input id="loginPassword" type="password" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" />
         </div>
-        <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
-          <i data-lucide="check-circle-2" class="w-6 h-6"></i>
-        </div>
-      </div>
+        <p id="loginError" class="text-sm text-rose-600 hidden"></p>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 text-white font-medium rounded-lg hover:bg-emerald-700">
+          Masuk
+        </button>
+      </form>
+    </div>
 
-      <!-- Failed Card -->
-      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex items-center justify-between">
-        <div>
-          <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Gagal (Failed)</p>
-          <p id="statFailed" class="text-3xl font-bold text-slate-900 mt-1">0</p>
-          <p class="text-xs text-rose-600 mt-1 font-medium">Perlu pengecekan ulang</p>
-        </div>
-        <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
-          <i data-lucide="alert-circle" class="w-6 h-6"></i>
-        </div>
-      </div>
-    </section>
-
-    <!-- ==================== WORKSPACE GRID (FORM + LIST) ==================== -->
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-      <!-- LEFT COLUMN: ADD / EDIT FORM -->
-      <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 lg:sticky lg:top-24">
-        <div class="flex items-center justify-between mb-5">
-          <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <i id="formIcon" data-lucide="calendar-plus" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <h2 id="formTitle" class="text-base font-bold text-slate-900">Buat Jadwal Reminder</h2>
-              <p id="formSubtitle" class="text-xs text-slate-500">Isi detail penerima dan waktu pengiriman</p>
-            </div>
-          </div>
-          <button
-            id="btnCancelEdit"
-            type="button"
-            onclick="resetForm()"
-            class="hidden text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition cursor-pointer"
-          >
-            Batal Edit
-          </button>
-        </div>
-
-        <form id="reminderForm" onsubmit="handleSaveReminder(event)" class="space-y-4">
-          <!-- Nama Penerima -->
+    <!-- Dashboard Utama -->
+    <div id="appSection" class="hidden space-y-6">
+      <!-- Form Tambah Jadwal -->
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <h2 class="font-bold text-lg mb-4">Buat Jadwal Reminder Baru</h2>
+        <form id="reminderForm" onsubmit="saveReminder(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="inputName" class="block text-sm font-medium text-slate-700 mb-1.5">
-              Nama Penerima <span class="text-slate-400 font-normal">(opsional)</span>
-            </label>
-            <input
-              id="inputName"
-              type="text"
-              placeholder="Contoh: Budi Santoso / Tim Desain"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-            />
+            <label class="block text-sm font-medium mb-1">Nama Penerima</label>
+            <input id="recipientName" type="text" required placeholder="Contoh: Budi" class="w-full px-3 py-2 border rounded-lg text-sm" />
           </div>
-
-          <!-- Nomor WhatsApp -->
           <div>
-            <label for="inputPhone" class="block text-sm font-medium text-slate-700 mb-1.5">
-              Nomor WhatsApp <span class="text-rose-500">*</span>
-            </label>
-            <div class="relative">
-              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">
-                <i data-lucide="phone" class="w-4 h-4"></i>
-              </span>
-              <input
-                id="inputPhone"
-                type="tel"
-                required
-                placeholder="6281234567890"
-                oninput="handlePhoneInput()"
-                class="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              />
-            </div>
-            <div class="flex items-center justify-between mt-1.5 gap-2">
-              <p id="phoneHint" class="text-xs text-slate-500">
-                Gunakan kode negara tanpa tanda +, misal <span class="font-mono font-medium text-slate-700">6281234567890</span>
-              </p>
-              <button
-                id="btnFixPhone"
-                type="button"
-                onclick="fixPhonePrefix()"
-                class="hidden text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-0.5 rounded-md shrink-0 cursor-pointer"
-              >
-                Ubah ke 62...
+            <label class="block text-sm font-medium mb-1">Nomor WhatsApp (awalan 62)</label>
+            <div class="flex gap-2">
+              <input id="phoneNumber" type="text" required placeholder="6281234567890" class="w-full px-3 py-2 border rounded-lg text-sm" />
+              <button type="button" onclick="formatPhone()" class="px-2.5 py-2 text-xs bg-slate-100 border rounded-lg hover:bg-slate-200 whitespace-nowrap">
+                08 → 62
               </button>
             </div>
           </div>
-
-          <!-- Tanggal & Jam Kirim + Pengulangan -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <label for="inputSchedule" class="block text-sm font-medium text-slate-700 mb-1.5">
-                Tanggal & Jam Kirim <span class="text-rose-500">*</span>
-              </label>
-              <input
-                id="inputSchedule"
-                type="datetime-local"
-                required
-                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              />
-            </div>
-
-            <div>
-              <label for="inputRecurrence" class="block text-sm font-medium text-slate-700 mb-1.5">
-                Pengulangan
-              </label>
-              <select
-                id="inputRecurrence"
-                class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition"
-              >
-                <option value="none">Sekali saja</option>
-                <option value="daily">Harian</option>
-                <option value="weekly">Mingguan</option>
-                <option value="monthly">Bulanan</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Isi Pesan + Template Cepat -->
           <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label for="inputMessage" class="block text-sm font-medium text-slate-700">
-                Isi Pesan <span class="text-rose-500">*</span>
-              </label>
-              <span id="charCount" class="text-xs text-slate-400 font-medium">0 karakter</span>
-            </div>
-
-            <!-- Quick Templates -->
-            <div class="flex flex-wrap gap-1.5 mb-2">
-              <button
-                type="button"
-                onclick="applyTemplate('tagihan')"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs font-medium transition cursor-pointer"
-              >
-                <i data-lucide="receipt" class="w-3.5 h-3.5"></i>
-                Pengingat Tagihan
-              </button>
-              <button
-                type="button"
-                onclick="applyTemplate('meeting')"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs font-medium transition cursor-pointer"
-              >
-                <i data-lucide="video" class="w-3.5 h-3.5"></i>
-                Pengingat Meeting
-              </button>
-              <button
-                type="button"
-                onclick="applyTemplate('followup')"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-600 text-xs font-medium transition cursor-pointer"
-              >
-                <i data-lucide="bell-ring" class="w-3.5 h-3.5"></i>
-                Pengingat Rutin
-              </button>
-            </div>
-
-            <textarea
-              id="inputMessage"
-              rows="4"
-              required
-              oninput="updateCharCount()"
-              placeholder="Tulis pesan reminder WhatsApp di sini... Tips: gunakan *teks* untuk cetak tebal."
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition resize-y"
-            ></textarea>
+            <label class="block text-sm font-medium mb-1">Tanggal & Jam Kirim</label>
+            <input id="scheduledAt" type="datetime-local" required class="w-full px-3 py-2 border rounded-lg text-sm" />
           </div>
-
-          <!-- Submit Button -->
-          <button
-            id="btnSubmitReminder"
-            type="submit"
-            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-semibold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <i data-lucide="send" class="w-4 h-4"></i>
-            <span id="btnSubmitLabel">Simpan Jadwal Reminder</span>
-          </button>
+          <div>
+            <label class="block text-sm font-medium mb-1">Pengulangan</label>
+            <select id="recurrence" class="w-full px-3 py-2 border rounded-lg text-sm bg-white">
+              <option value="none">Sekali saja</option>
+              <option value="daily">Harian</option>
+              <option value="weekly">Mingguan</option>
+              <option value="monthly">Bulanan</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium mb-1">Isi Pesan</label>
+            <textarea id="messageText" rows="3" required placeholder="Tulis pesan reminder di sini..." class="w-full px-3 py-2 border rounded-lg text-sm"></textarea>
+          </div>
+          <div class="md:col-span-2 flex justify-end">
+            <button type="submit" id="btnSave" class="px-5 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700">
+              + Simpan Jadwal
+            </button>
+          </div>
         </form>
       </div>
 
-      <!-- RIGHT COLUMN: REMINDER LIST -->
-      <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 class="text-base font-bold text-slate-900">Daftar Jadwal Reminder</h2>
-            <p class="text-xs text-slate-500">Pantau, cari, dan kelola antrean pesan WhatsApp Anda</p>
-          </div>
-
-          <!-- Search Input -->
-          <div class="relative w-full sm:w-64">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-              <i data-lucide="search" class="w-4 h-4"></i>
-            </span>
-            <input
-              id="searchInput"
-              type="text"
-              oninput="handleSearch(this.value)"
-              placeholder="Cari nama, nomor, pesan..."
-              class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 transition"
-            />
-          </div>
+      <!-- Daftar Jadwal -->
+      <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="font-bold text-lg">Daftar Jadwal</h2>
+          <button onclick="loadReminders()" class="text-sm text-emerald-600 hover:underline">↻ Refresh</button>
         </div>
-
-        <!-- Status Filter Tabs -->
-        <div class="flex flex-wrap items-center gap-1.5 pb-4 mb-4 border-b border-slate-100">
-          <button
-            type="button"
-            data-filter="all"
-            onclick="setFilter('all')"
-            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"
-          >
-            Semua <span id="tabCountAll" class="ml-1 opacity-75">0</span>
-          </button>
-          <button
-            type="button"
-            data-filter="pending"
-            onclick="setFilter('pending')"
-            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"
-          >
-            Menunggu <span id="tabCountPending" class="ml-1 opacity-75">0</span>
-          </button>
-          <button
-            type="button"
-            data-filter="sent"
-            onclick="setFilter('sent')"
-            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"
-          >
-            Terkirim <span id="tabCountSent" class="ml-1 opacity-75">0</span>
-          </button>
-          <button
-            type="button"
-            data-filter="failed"
-            onclick="setFilter('failed')"
-            class="filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer"
-          >
-            Gagal <span id="tabCountFailed" class="ml-1 opacity-75">0</span>
-          </button>
-        </div>
-
-        <!-- Loading Indicator -->
-        <div id="listLoader" class="hidden py-12 text-center">
-          <div class="w-8 h-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
-          <p class="text-sm text-slate-500">Memuat jadwal reminder...</p>
-        </div>
-
-        <!-- Reminder Items Container -->
-        <div id="reminderList" class="space-y-3"></div>
-
-        <!-- Empty State -->
-        <div id="emptyState" class="hidden py-12 text-center">
-          <div class="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-            <i data-lucide="inbox" class="w-7 h-7"></i>
-          </div>
-          <h3 class="text-sm font-semibold text-slate-800">Belum ada jadwal reminder</h3>
-          <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-            Tambahkan jadwal baru melalui formulir di samping atau ubah filter pencarian Anda.
-          </p>
+        <div id="reminderList" class="space-y-3">
+          <p class="text-sm text-slate-400 text-center py-4">Memuat data...</p>
         </div>
       </div>
-
-    </section>
+    </div>
   </main>
 
-  <!-- ==================== FOOTER ==================== -->
-  <footer class="border-t border-slate-200 bg-white mt-auto">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-      <p>WA Reminder Automation • Siap deploy di GitHub Pages + Supabase</p>
-      <p class="flex items-center gap-1.5">
-        <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i>
-        Token WhatsApp API disimpan aman di server backend
-      </p>
-    </div>
-  </footer>
-
-  <!-- ==================== MODAL 1: PENGATURAN KONEKSI ==================== -->
-  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-lg max-h-[90vh] overflow-y-auto">
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white z-10">
-        <div class="flex items-center gap-2.5">
-          <i data-lucide="sliders-horizontal" class="w-5 h-5 text-emerald-600"></i>
-          <h3 class="text-base font-bold text-slate-900">Pengaturan Mode & Koneksi</h3>
-        </div>
-        <button type="button" onclick="closeSettingsModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <div class="p-6 space-y-5">
-        <!-- Mode Selector -->
+  <!-- Modal Pengaturan -->
+  <div id="settingsModal" class="hidden fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-xl">
+      <h3 class="font-bold text-lg mb-4">Pengaturan Supabase</h3>
+      <div class="space-y-4">
         <div>
-          <label class="block text-sm font-semibold text-slate-800 mb-2">Pilih Mode Operasi</label>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <label class="relative flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition hover:border-emerald-400" id="cardModeDemo">
-              <input type="radio" name="appMode" value="demo" onchange="toggleSettingsFields()" class="mt-1 accent-emerald-600" />
-              <div>
-                <p class="text-sm font-semibold text-slate-900">Mode Demo (Lokal)</p>
-                <p class="text-xs text-slate-500 mt-0.5">Simulasi langsung di browser (localStorage).</p>
-              </div>
-            </label>
-
-            <label class="relative flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition hover:border-emerald-400" id="cardModeSupabase">
-              <input type="radio" name="appMode" value="supabase" onchange="toggleSettingsFields()" class="mt-1 accent-emerald-600" />
-              <div>
-                <p class="text-sm font-semibold text-slate-900">Mode Produksi</p>
-                <p class="text-xs text-slate-500 mt-0.5">Terhubung ke Supabase + Login Auth.</p>
-              </div>
-            </label>
-          </div>
+          <label class="block text-sm font-medium mb-1">Project URL</label>
+          <input id="cfgUrl" type="url" placeholder="https://xxxx.supabase.co" class="w-full px-3 py-2 border rounded-lg text-sm" />
         </div>
-
-        <!-- Supabase Credentials Section -->
-        <div id="supabaseConfigFields" class="space-y-4 pt-2 border-t border-slate-100">
-          <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 leading-relaxed">
-            <strong class="text-slate-800">Aman untuk Frontend:</strong> <code class="bg-slate-200/70 px-1 rounded">Anon Key</code> aman dimasukkan di sini karena akses database dikunci ketat oleh <strong>Row Level Security (RLS)</strong>—hanya user yang login yang bisa membaca/menulis data.
-          </div>
-
-          <div>
-            <label for="cfgSupabaseUrl" class="block text-sm font-medium text-slate-700 mb-1.5">Supabase Project URL</label>
-            <input
-              id="cfgSupabaseUrl"
-              type="url"
-              placeholder="https://xyzcompany.supabase.co"
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            />
-          </div>
-
-          <div>
-            <label for="cfgSupabaseKey" class="block text-sm font-medium text-slate-700 mb-1.5">Supabase Anon (Public) Key</label>
-            <textarea
-              id="cfgSupabaseKey"
-              rows="3"
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-              class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            ></textarea>
-          </div>
-        </div>
-
-        <!-- Reset Demo Data Option -->
-        <div id="demoResetBox" class="pt-2 border-t border-slate-100 flex items-center justify-between">
-          <div>
-            <p class="text-sm font-medium text-slate-800">Reset Data Demo</p>
-            <p class="text-xs text-slate-500">Kembalikan 3 contoh jadwal reminder bawaan.</p>
-          </div>
-          <button
-            type="button"
-            onclick="resetDemoData()"
-            class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
-          >
-            Reset Contoh
-          </button>
+        <div>
+          <label class="block text-sm font-medium mb-1">Publishable / Anon Key</label>
+          <input id="cfgKey" type="text" placeholder="sb_publishable_..." class="w-full px-3 py-2 border rounded-lg text-sm" />
         </div>
       </div>
-
-      <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-2.5 rounded-b-2xl">
-        <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-200 transition cursor-pointer">
-          Batal
-        </button>
-        <button type="button" onclick="saveSettings()" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition cursor-pointer">
-          Simpan & Terapkan
-        </button>
+      <div class="flex justify-end gap-2 mt-6">
+        <button onclick="closeSettings()" class="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Batal</button>
+        <button onclick="saveSettings()" class="px-4 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700">Simpan</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== MODAL 2: PANDUAN SETUP BACKEND ==================== -->
-  <div id="guideModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col">
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 shrink-0">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <i data-lucide="terminal" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h3 class="text-base font-bold text-slate-900">Panduan Setup Backend (Supabase + GitHub Pages)</h3>
-            <p class="text-xs text-slate-500">Salin script berikut ke proyek Supabase Anda agar pengiriman WhatsApp berjalan otomatis 24/7</p>
-          </div>
-        </div>
-        <button type="button" onclick="closeGuideModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Guide Tabs -->
-      <div class="px-6 pt-3 bg-slate-50 border-b border-slate-200 flex flex-wrap gap-2 shrink-0">
-        <button type="button" data-guide-tab="sql" onclick="switchGuideTab('sql')" class="guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 transition cursor-pointer">
-          1. SQL Tabel & RLS
-        </button>
-        <button type="button" data-guide-tab="edge" onclick="switchGuideTab('edge')" class="guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 transition cursor-pointer">
-          2. Edge Function (Pengirim WA)
-        </button>
-        <button type="button" data-guide-tab="cron" onclick="switchGuideTab('cron')" class="guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 transition cursor-pointer">
-          3. Jadwal Otomatis (pg_cron)
-        </button>
-        <button type="button" data-guide-tab="deploy" onclick="switchGuideTab('deploy')" class="guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 transition cursor-pointer">
-          4. Deploy GitHub Pages
-        </button>
-      </div>
-
-      <!-- Guide Content Body -->
-      <div class="p-6 overflow-y-auto space-y-4 flex-1">
-
-        <!-- TAB 1: SQL -->
-        <div id="guidePanel-sql" class="guide-panel space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Buat Tabel <code class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">reminders</code> + Keamanan RLS</h4>
-              <p class="text-xs text-slate-600 mt-0.5">Buka <strong>Supabase Dashboard → SQL Editor → New Query</strong>, tempel lalu klik <strong>Run</strong>.</p>
-            </div>
-            <button type="button" onclick="copyCodeBlock('codeSql')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0 cursor-pointer">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin SQL
-            </button>
-          </div>
-          <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed"><code id="codeSql"></code></pre>
-        </div>
-
-        <!-- TAB 2: EDGE FUNCTION -->
-        <div id="guidePanel-edge" class="guide-panel hidden space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Supabase Edge Function (<code class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">send-wa-reminders</code>)</h4>
-              <p class="text-xs text-slate-600 mt-0.5">Simpan token API Anda di <strong>Project Settings → Edge Functions → Secrets</strong> dengan nama <code class="bg-slate-100 px-1 rounded font-mono">WA_API_TOKEN</code>.</p>
-            </div>
-            <button type="button" onclick="copyCodeBlock('codeEdge')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0 cursor-pointer">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Kode
-            </button>
-          </div>
-          <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed"><code id="codeEdge"></code></pre>
-        </div>
-
-        <!-- TAB 3: PG_CRON -->
-        <div id="guidePanel-cron" class="guide-panel hidden space-y-3">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h4 class="text-sm font-bold text-slate-900">Penjadwalan Otomatis Setiap Menit (<code class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">pg_cron</code>)</h4>
-              <p class="text-xs text-slate-600 mt-0.5">Aktifkan ekstensi <strong>pg_cron</strong> & <strong>pg_net</strong> di menu <em>Database → Extensions</em>, lalu jalankan query ini di SQL Editor.</p>
-            </div>
-            <button type="button" onclick="copyCodeBlock('codeCron')" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold shrink-0 cursor-pointer">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Query
-            </button>
-          </div>
-          <pre class="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs font-mono overflow-x-auto leading-relaxed"><code id="codeCron"></code></pre>
-        </div>
-
-        <!-- TAB 4: DEPLOY -->
-        <div id="guidePanel-deploy" class="guide-panel hidden space-y-4">
-          <h4 class="text-sm font-bold text-slate-900">Langkah Ringkas Go-Live (Gratis & Aman)</h4>
-          <ol class="space-y-3 text-sm text-slate-700 list-decimal list-inside">
-            <li class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <strong class="text-slate-900">Buat Akun Admin di Supabase:</strong> Masuk ke <em>Authentication → Users → Add User</em> dan buat 1 akun Email & Password khusus untuk Anda. Nonaktifkan pendaftaran publik (<em>Disable Signup</em>) di menu <em>Auth → Providers → Email</em>.
-            </li>
-            <li class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <strong class="text-slate-900">Upload ke GitHub Pages:</strong> Buat repository baru di GitHub, upload file <code class="font-mono bg-slate-200/70 px-1.5 py-0.5 rounded">index.html</code> ini, lalu aktifkan <em>Settings → Pages → Branch: main</em>.
-            </li>
-            <li class="p-3 bg-slate-50 rounded-xl border border-slate-200">
-              <strong class="text-slate-900">Hubungkan WebApp:</strong> Buka URL GitHub Pages Anda, klik <strong>Pengaturan → Mode Produksi</strong>, masukkan <em>Project URL</em> dan <em>Anon Key</em>, lalu login dengan akun yang tadi dibuat.
-            </li>
-          </ol>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL 3: KONFIRMASI HAPUS ==================== -->
-  <div id="deleteModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-sm p-6 text-center">
-      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
-        <i data-lucide="trash-2" class="w-6 h-6"></i>
-      </div>
-      <h3 class="text-base font-bold text-slate-900">Hapus Jadwal Reminder?</h3>
-      <p class="text-xs text-slate-500 mt-1.5">Data jadwal yang sudah dihapus tidak dapat dikembalikan lagi.</p>
-      <div class="flex items-center justify-center gap-2.5 mt-6">
-        <button type="button" onclick="closeDeleteModal()" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer">
-          Batal
-        </button>
-        <button type="button" onclick="confirmDeleteReminder()" class="flex-1 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition cursor-pointer">
-          Ya, Hapus
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== TOAST CONTAINER ==================== -->
-  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
-
-  <!-- ==================== APPLICATION SCRIPT ==================== -->
   <script>
-    // =========================================================================
-    // 1. CONSTANTS & STORAGE KEYS
-    // =========================================================================
-    const STORAGE_KEYS = {
-      MODE: 'wa_reminder_mode',
-      CONFIG: 'wa_reminder_supabase_config',
-      DEMO_DATA: 'wa_reminder_demo_items'
-    };
+    let sb = null;
 
-    // Quick message templates
-    const MESSAGE_TEMPLATES = {
-      tagihan: 'Halo Kak {nama}, sekadar mengingatkan bahwa tagihan bulan ini akan jatuh tempo besok. Mohon konfirmasi jika sudah melakukan pembayaran ya. Terima kasih! 🙏',
-      meeting: 'Halo {nama}, mengingatkan kita ada jadwal *Meeting Koordinasi* 30 menit lagi. Link pertemuan: https://meet.google.com/xxx-xxxx-xxx. Sampai jumpa!',
-      followup: 'Halo {nama}, ini adalah pengingat rutin untuk jadwal hari ini. Semoga harinya lancar dan produktif! ✨'
-    };
-
-    // Backend Guide Code Snippets (ready to copy)
-    const BACKEND_SNIPPETS = {
-      sql: `-- 1. Buat tabel reminders
-CREATE TABLE IF NOT EXISTS public.reminders (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
-  recipient_name TEXT,
-  phone_number TEXT NOT NULL,
-  message TEXT NOT NULL,
-  scheduled_at TIMESTAMPTZ NOT NULL,
-  recurrence TEXT NOT NULL DEFAULT 'none' CHECK (recurrence IN ('none', 'daily', 'weekly', 'monthly')),
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'sent', 'failed')),
-  error_log TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- 2. Index agar query cron job cepat
-CREATE INDEX IF NOT EXISTS idx_reminders_due
-  ON public.reminders (status, scheduled_at)
-  WHERE status = 'pending';
-
--- 3. Aktifkan Row Level Security (RLS)
-ALTER TABLE public.reminders ENABLE ROW LEVEL SECURITY;
-
--- 4. Policy: Hanya user yang login yang boleh akses datanya sendiri
-CREATE POLICY "User dapat melihat reminder miliknya"
-  ON public.reminders FOR SELECT
-  TO authenticated
-  USING (auth.uid() = user_id);
-
-CREATE POLICY "User dapat membuat reminder"
-  ON public.reminders FOR INSERT
-  TO authenticated
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "User dapat mengubah reminder miliknya"
-  ON public.reminders FOR UPDATE
-  TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "User dapat menghapus reminder miliknya"
-  ON public.reminders FOR DELETE
-  TO authenticated
-  USING (auth.uid() = user_id);`,
-
-      edge: `// File: supabase/functions/send-wa-reminders/index.ts
-// Deploy: supabase functions deploy send-wa-reminders --no-verify-jwt
-// Secret: supabase secrets set WA_API_TOKEN="token_api_kamu"
-
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WA_API_TOKEN = Deno.env.get("WA_API_TOKEN")!;
-// Khusus Meta Cloud API, tambahkan juga secret WA_PHONE_NUMBER_ID
-const WA_PHONE_NUMBER_ID = Deno.env.get("WA_PHONE_NUMBER_ID") || "";
-
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
-
-// Helper hitung jadwal berikutnya jika pengulangan aktif
-function getNextSchedule(currentIso: string, recurrence: string): string {
-  const date = new Date(currentIso);
-  if (recurrence === "daily") date.setDate(date.getDate() + 1);
-  if (recurrence === "weekly") date.setDate(date.getDate() + 7);
-  if (recurrence === "monthly") date.setMonth(date.getMonth() + 1);
-  return date.toISOString();
-}
-
-// OPSI A: Kirim via Fonnte API (Paling simpel)
-async function sendViaFonnte(phone: string, message: string) {
-  const res = await fetch("https://api.fonnte.com/send", {
-    method: "POST",
-    headers: {
-      "Authorization": WA_API_TOKEN,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      target: phone,
-      message: message,
-      countryCode: "62",
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok || data.status === false) {
-    throw new Error(data.reason || "Gagal mengirim via Fonnte");
-  }
-  return data;
-}
-
-// OPSI B: Kirim via Meta WhatsApp Cloud API (Resmi)
-async function sendViaMetaCloud(phone: string, message: string) {
-  const url = \`https://graph.facebook.com/v20.0/\${WA_PHONE_NUMBER_ID}/messages\`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Authorization": \`Bearer \${WA_API_TOKEN}\`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: phone,
-      type: "text",
-      text: { body: message },
-    }),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || "Gagal mengirim via Meta Cloud API");
-  }
-  return data;
-}
-
-Deno.serve(async () => {
-  try {
-    const nowIso = new Date().toISOString();
-
-    // Ambil semua reminder yang statusnya pending & sudah jatuh tempo
-    const { data: dueReminders, error } = await supabase
-      .from("reminders")
-      .select("*")
-      .eq("status", "pending")
-      .lte("scheduled_at", nowIso)
-      .limit(20);
-
-    if (error) throw error;
-    if (!dueReminders || dueReminders.length === 0) {
-      return new Response(JSON.stringify({ processed: 0 }), { status: 200 });
-    }
-
-    let sentCount = 0;
-    for (const item of dueReminders) {
-      try {
-        // Ganti ke sendViaMetaCloud(...) jika memakai API resmi Meta
-        await sendViaFonnte(item.phone_number, item.message);
-
-        // Tandai reminder saat ini sebagai terkirim
-        await supabase
-          .from("reminders")
-          .update({ status: "sent", error_log: null })
-          .eq("id", item.id);
-
-        // Jika berulang, buat jadwal baru untuk periode selanjutnya
-        if (item.recurrence && item.recurrence !== "none") {
-          await supabase.from("reminders").insert({
-            user_id: item.user_id,
-            recipient_name: item.recipient_name,
-            phone_number: item.phone_number,
-            message: item.message,
-            scheduled_at: getNextSchedule(item.scheduled_at, item.recurrence),
-            recurrence: item.recurrence,
-            status: "pending",
-          });
-        }
-        sentCount++;
-      } catch (sendErr) {
-        await supabase
-          .from("reminders")
-          .update({
-            status: "failed",
-            error_log: String(sendErr.message || sendErr),
-          })
-          .eq("id", item.id);
-      }
-    }
-
-    return new Response(JSON.stringify({ processed: dueReminders.length, sent: sentCount }), {
-      headers: { "Content-Type": "application/json" },
-      status: 200,
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
-  }
-});`,
-
-      cron: `-- Jalankan di Supabase SQL Editor setelah mengaktifkan ekstensi pg_cron & pg_net
--- Ganti <PROJECT_REF> dan <SERVICE_ROLE_KEY> dengan milik proyek Supabase Anda
-
-SELECT cron.schedule(
-  'cek-wa-reminder-tiap-menit',
-  '* * * * *', -- Berjalan setiap 1 menit
-  $$
-  SELECT net.http_post(
-    url := 'https://<PROJECT_REF>.supabase.co/functions/v1/send-wa-reminders',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'Authorization', 'Bearer <SERVICE_ROLE_KEY>'
-    ),
-    body := '{}'::jsonb
-  ) AS request_id;
-  $$
-);
-
--- Untuk melihat daftar cron aktif:
--- SELECT * FROM cron.job;
-
--- Untuk menghentikan cron:
--- SELECT cron.unschedule('cek-wa-reminder-tiap-menit');`
-    };
-
-    // =========================================================================
-    // 2. APPLICATION STATE
-    // =========================================================================
-    const state = {
-      mode: 'demo', // 'demo' | 'supabase'
-      supabaseConfig: { url: '', anonKey: '' },
-      supabaseClient: null,
-      user: null,
-      reminders: [],
-      filterStatus: 'all', // 'all' | 'pending' | 'sent' | 'failed'
-      searchQuery: '',
-      editingId: null,
-      pendingDeleteId: null
-    };
-
-    // =========================================================================
-    // 3. SAMPLE DATA FOR DEMO MODE
-    // =========================================================================
-    function createDefaultDemoData() {
-      const now = Date.now();
-      const hour = 3600 * 1000;
-      const day = 24 * hour;
-
-      return [
-        {
-          id: 'demo-1',
-          recipient_name: 'Ibu Rina (Klien Web)',
-          phone_number: '6281234567890',
-          message: 'Halo Ibu Rina, sekadar mengingatkan besok pukul 10.00 WIB kita ada sesi review desain final via Google Meet. Terima kasih! 🙏',
-          scheduled_at: new Date(now + 2 * hour).toISOString(),
-          recurrence: 'none',
-          status: 'pending',
-          error_log: null,
-          created_at: new Date(now - day).toISOString()
-        },
-        {
-          id: 'demo-2',
-          recipient_name: 'Grup Kas RT / Tagihan Internet',
-          phone_number: '6285798765432',
-          message: 'Pengingat bulanan: Pembayaran iuran internet rumah bulan ini jatuh tempo tanggal 28. Jangan lupa transfer ya! 💡',
-          scheduled_at: new Date(now + 3 * day).toISOString(),
-          recurrence: 'monthly',
-          status: 'pending',
-          error_log: null,
-          created_at: new Date(now - 2 * day).toISOString()
-        },
-        {
-          id: 'demo-3',
-          recipient_name: 'Andi Pratama',
-          phone_number: '6281911223344',
-          message: 'Halo Andi, terima kasih sudah konfirmasi kehadiran workshop hari ini. Sampai bertemu di lokasi pukul 09.00 WIB!',
-          scheduled_at: new Date(now - 5 * hour).toISOString(),
-          recurrence: 'none',
-          status: 'sent',
-          error_log: null,
-          created_at: new Date(now - 3 * day).toISOString()
-        }
-      ];
-    }
-
-    // =========================================================================
-    // 4. DATE, PHONE & FORMATTING HELPERS
-    // =========================================================================
-    function toLocalDateTimeInput(isoString) {
-      const date = isoString ? new Date(isoString) : new Date(Date.now() + 3600 * 1000);
-      const offsetMs = date.getTimezoneOffset() * 60000;
-      const localDate = new Date(date.getTime() - offsetMs);
-      return localDate.toISOString().slice(0, 16);
-    }
-
-    function localDateTimeToISO(localStr) {
-      return new Date(localStr).toISOString();
-    }
-
-    function formatIndonesianDateTime(isoString) {
-      try {
-        const d = new Date(isoString);
-        const datePart = new Intl.DateTimeFormat('id-ID', {
-          weekday: 'short',
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        }).format(d);
-        const timePart = new Intl.DateTimeFormat('id-ID', {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        }).format(d);
-        return `${datePart} • ${timePart}`;
-      } catch {
-        return isoString;
-      }
-    }
-
-    function sanitizePhone(raw) {
-      return String(raw || '').replace(/\D/g, '');
-    }
-
-    function formatRecurrenceLabel(rec) {
-      const map = {
-        none: 'Sekali saja',
-        daily: 'Harian',
-        weekly: 'Mingguan',
-        monthly: 'Bulanan'
-      };
-      return map[rec] || 'Sekali saja';
-    }
-
-    function escapeHtml(str) {
-      return String(str || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // =========================================================================
-    // 5. TOAST NOTIFICATION SYSTEM (NO alert()!)
-    // =========================================================================
-    function showToast(message, type = 'success') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-
-      const styles = {
-        success: 'bg-slate-900 text-white border-emerald-500/40',
-        error: 'bg-rose-600 text-white border-rose-400',
-        info: 'bg-slate-800 text-white border-slate-600'
-      };
-      const icons = {
-        success: 'check-circle-2',
-        error: 'alert-triangle',
-        info: 'info'
-      };
-      const iconColors = {
-        success: 'text-emerald-400',
-        error: 'text-white',
-        info: 'text-sky-400'
-      };
-
-      toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-medium transition-all duration-300 translate-y-2 opacity-0 ${styles[type] || styles.info}`;
-      toast.innerHTML = `
-        <i data-lucide="${icons[type] || icons.info}" class="w-4 h-4 shrink-0 ${iconColors[type] || ''}"></i>
-        <span class="leading-snug">${escapeHtml(message)}</span>
-      `;
-
-      container.appendChild(toast);
-      lucide.createIcons({ nodes: [toast] });
-
-      requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-2', 'opacity-0');
-      });
-
-      setTimeout(() => {
-        toast.classList.add('translate-y-2', 'opacity-0');
-        setTimeout(() => toast.remove(), 300);
-      }, 3200);
-    }
-
-    // =========================================================================
-    // 6. INITIALIZATION & MODE MANAGEMENT
-    // =========================================================================
-    async function initApp() {
-      // Populate backend guide code blocks
-      document.getElementById('codeSql').textContent = BACKEND_SNIPPETS.sql;
-      document.getElementById('codeEdge').textContent = BACKEND_SNIPPETS.edge;
-      document.getElementById('codeCron').textContent = BACKEND_SNIPPETS.cron;
-      switchGuideTab('sql');
-
-      // Set default schedule input (+1 hour from now)
-      document.getElementById('inputSchedule').value = toLocalDateTimeInput();
-
-      // Load persisted settings
-      try {
-        const savedMode = localStorage.getItem(STORAGE_KEYS.MODE);
-        const savedCfg = JSON.parse(localStorage.getItem(STORAGE_KEYS.CONFIG) || '{}');
-        if (savedCfg.url && savedCfg.anonKey) {
-          state.supabaseConfig = savedCfg;
-        }
-        if (savedMode === 'supabase' && state.supabaseConfig.url && state.supabaseConfig.anonKey) {
-          state.mode = 'supabase';
-        } else {
-          state.mode = 'demo';
-        }
-      } catch (e) {
-        console.error('Gagal membaca konfigurasi lokal:', e);
-        state.mode = 'demo';
-      }
-
-      await applyCurrentMode();
-      lucide.createIcons();
-    }
-
-    async function applyCurrentMode() {
-      updateHeaderModeUI();
-
-      if (state.mode === 'demo') {
-        state.user = null;
-        document.getElementById('authSection').classList.add('hidden');
-        document.getElementById('dashboardSection').classList.remove('hidden');
-        document.getElementById('demoBanner').classList.remove('hidden');
-        document.getElementById('supabaseUserBanner').classList.add('hidden');
-        document.getElementById('btnLogout').classList.add('hidden');
-        await loadReminders();
+    function init() {
+      const url = localStorage.getItem('sb_url');
+      const key = localStorage.getItem('sb_key');
+      if (!url || !key) {
+        document.getElementById('setupNotice').classList.remove('hidden');
         return;
       }
-
-      // Mode Produksi (Supabase)
-      document.getElementById('demoBanner').classList.add('hidden');
-      try {
-        state.supabaseClient = window.supabase.createClient(
-          state.supabaseConfig.url,
-          state.supabaseConfig.anonKey
-        );
-
-        const { data, error } = await state.supabaseClient.auth.getSession();
-        if (error) throw error;
-
-        if (data?.session?.user) {
-          state.user = data.session.user;
-          showAuthenticatedDashboard();
-          await loadReminders();
-        } else {
-          state.user = null;
-          showAuthGate();
-        }
-      } catch (err) {
-        console.error('Supabase init error:', err);
-        showToast('Gagal terhubung ke Supabase. Periksa URL & Anon Key Anda.', 'error');
-        showAuthGate();
-      }
+      sb = window.supabase.createClient(url, key);
+      checkSession();
     }
 
-    function updateHeaderModeUI() {
-      const pill = document.getElementById('btnModePill');
-      const dot = document.getElementById('modeDot');
-      const label = document.getElementById('modeLabel');
-
-      if (state.mode === 'demo') {
-        pill.className = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
-        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
-        label.textContent = 'Mode Demo (Lokal)';
+    async function checkSession() {
+      const { data: { session } } = await sb.auth.getSession();
+      document.getElementById('setupNotice').classList.add('hidden');
+      if (session) {
+        document.getElementById('loginSection').classList.add('hidden');
+        document.getElementById('appSection').classList.remove('hidden');
+        document.getElementById('btnLogout').classList.remove('hidden');
+        loadReminders();
       } else {
-        pill.className = 'inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition cursor-pointer bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
-        dot.className = 'w-2 h-2 rounded-full bg-emerald-500';
-        label.textContent = 'Mode Produksi (Supabase)';
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('appSection').classList.add('hidden');
+        document.getElementById('btnLogout').classList.add('hidden');
       }
     }
 
-    function showAuthGate() {
-      document.getElementById('authSection').classList.remove('hidden');
-      document.getElementById('dashboardSection').classList.add('hidden');
-      document.getElementById('btnLogout').classList.add('hidden');
-      lucide.createIcons();
-    }
-
-    function showAuthenticatedDashboard() {
-      document.getElementById('authSection').classList.add('hidden');
-      document.getElementById('dashboardSection').classList.remove('hidden');
-      document.getElementById('supabaseUserBanner').classList.remove('hidden');
-      document.getElementById('btnLogout').classList.remove('hidden');
-      document.getElementById('loggedInEmail').textContent = state.user?.email || '-';
-      lucide.createIcons();
-    }
-
-    // =========================================================================
-    // 7. SUPABASE AUTHENTICATION HANDLERS
-    // =========================================================================
-    async function handleLogin(event) {
-      event.preventDefault();
-      if (!state.supabaseClient) {
-        showToast('Konfigurasi Supabase belum valid.', 'error');
-        return;
-      }
-
-      const email = document.getElementById('loginEmail').value.trim();
+    async function handleLogin(e) {
+      e.preventDefault();
+      const errEl = document.getElementById('loginError');
+      errEl.classList.add('hidden');
+      const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
-      const btn = document.getElementById('btnLoginSubmit');
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        errEl.textContent = 'Gagal masuk: ' + error.message;
+        errEl.classList.remove('hidden');
+      } else {
+        checkSession();
+      }
+    }
 
+    async function logout() {
+      await sb.auth.signOut();
+      checkSession();
+    }
+
+    function formatPhone() {
+      const el = document.getElementById('phoneNumber');
+      let val = el.value.replace(/[^0-9]/g, '');
+      if (val.startsWith('0')) val = '62' + val.slice(1);
+      el.value = val;
+    }
+
+    async function saveReminder(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSave');
       btn.disabled = true;
-      btn.classList.add('opacity-70');
+      btn.textContent = 'Menyimpan...';
 
-      try {
-        const { data, error } = await state.supabaseClient.auth.signInWithPassword({
-          email,
-          password
-        });
-        if (error) throw error;
+      const payload = {
+        recipient_name: document.getElementById('recipientName').value.trim(),
+        phone_number: document.getElementById('phoneNumber').value.replace(/[^0-9]/g, ''),
+        message: document.getElementById('messageText').value.trim(),
+        scheduled_at: new Date(document.getElementById('scheduledAt').value).toISOString(),
+        recurrence: document.getElementById('recurrence').value,
+        status: 'pending'
+      };
 
-        state.user = data.user;
-        document.getElementById('loginPassword').value = '';
-        showToast('Berhasil login ke Dashboard Produksi!', 'success');
-        showAuthenticatedDashboard();
-        await loadReminders();
-      } catch (err) {
-        showToast(err.message || 'Email atau password salah.', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-70');
+      const { error } = await sb.from('reminders').insert([payload]);
+      btn.disabled = false;
+      btn.textContent = '+ Simpan Jadwal';
+
+      if (error) {
+        alert('Gagal menyimpan jadwal: ' + error.message);
+      } else {
+        document.getElementById('reminderForm').reset();
+        loadReminders();
       }
-    }
-
-    async function handleLogout() {
-      try {
-        if (state.supabaseClient) {
-          await state.supabaseClient.auth.signOut();
-        }
-        state.user = null;
-        state.reminders = [];
-        showToast('Anda telah keluar dari sesi Supabase.', 'info');
-        showAuthGate();
-      } catch (err) {
-        showToast('Gagal keluar: ' + err.message, 'error');
-      }
-    }
-
-    function switchToDemoMode() {
-      state.mode = 'demo';
-      localStorage.setItem(STORAGE_KEYS.MODE, 'demo');
-      applyCurrentMode();
-      showToast('Beralih ke Mode Demo (Lokal).', 'info');
-    }
-
-    // =========================================================================
-    // 8. CRUD OPERATIONS (DEMO LOCALSTORAGE & SUPABASE)
-    // =========================================================================
-    function saveDemoRemindersToStorage() {
-      localStorage.setItem(STORAGE_KEYS.DEMO_DATA, JSON.stringify(state.reminders));
     }
 
     async function loadReminders() {
-      const loader = document.getElementById('listLoader');
-      const listEl = document.getElementById('reminderList');
-      const emptyEl = document.getElementById('emptyState');
+      const list = document.getElementById('reminderList');
+      const { data, error } = await sb
+        .from('reminders')
+        .select('*')
+        .order('scheduled_at', { ascending: true });
 
-      if (state.mode === 'demo') {
-        try {
-          const raw = localStorage.getItem(STORAGE_KEYS.DEMO_DATA);
-          if (raw) {
-            state.reminders = JSON.parse(raw);
-          } else {
-            state.reminders = createDefaultDemoData();
-            saveDemoRemindersToStorage();
-          }
-        } catch {
-          state.reminders = createDefaultDemoData();
-          saveDemoRemindersToStorage();
-        }
-        renderDashboard();
+      if (error) {
+        list.innerHTML = `<p class="text-sm text-rose-600">Error: ${error.message}</p>`;
+        return;
+      }
+      if (!data.length) {
+        list.innerHTML = `<p class="text-sm text-slate-400 text-center py-4">Belum ada jadwal reminder.</p>`;
         return;
       }
 
-      // Supabase Mode
-      loader.classList.remove('hidden');
-      listEl.classList.add('hidden');
-      emptyEl.classList.add('hidden');
-
-      try {
-        const { data, error } = await state.supabaseClient
-          .from('reminders')
-          .select('*')
-          .order('scheduled_at', { ascending: true });
-
-        if (error) throw error;
-        state.reminders = data || [];
-      } catch (err) {
-        console.error('Load Supabase reminders error:', err);
-        showToast('Gagal mengambil data dari Supabase: ' + err.message, 'error');
-        state.reminders = [];
-      } finally {
-        loader.classList.add('hidden');
-        listEl.classList.remove('hidden');
-        renderDashboard();
-      }
-    }
-
-    async function handleSaveReminder(event) {
-      event.preventDefault();
-
-      const recipient_name = document.getElementById('inputName').value.trim();
-      let phone_number = sanitizePhone(document.getElementById('inputPhone').value);
-      const scheduleLocal = document.getElementById('inputSchedule').value;
-      const recurrence = document.getElementById('inputRecurrence').value;
-      const message = document.getElementById('inputMessage').value.trim();
-
-      // Auto-normalize Indonesian 08... prefix if user forgot to click fix
-      if (phone_number.startsWith('08')) {
-        phone_number = '62' + phone_number.slice(1);
-      }
-
-      if (phone_number.length < 10 || phone_number.length > 15) {
-        showToast('Nomor WhatsApp tidak valid (10–15 digit, format 628...).', 'error');
-        document.getElementById('inputPhone').focus();
-        return;
-      }
-
-      if (!scheduleLocal || !message) {
-        showToast('Mohon lengkapi jadwal kirim dan isi pesan.', 'error');
-        return;
-      }
-
-      const payload = {
-        recipient_name: recipient_name || null,
-        phone_number,
-        scheduled_at: localDateTimeToISO(scheduleLocal),
-        recurrence,
-        message
+      const badges = {
+        pending: 'bg-amber-100 text-amber-800',
+        sent: 'bg-emerald-100 text-emerald-800',
+        failed: 'bg-rose-100 text-rose-800'
       };
+      const labels = { none: 'Sekali', daily: 'Harian', weekly: 'Mingguan', monthly: 'Bulanan' };
 
-      const btn = document.getElementById('btnSubmitReminder');
-      btn.disabled = true;
-      btn.classList.add('opacity-70');
-
-      try {
-        if (state.mode === 'demo') {
-          if (state.editingId) {
-            const idx = state.reminders.findIndex(r => r.id === state.editingId);
-            if (idx !== -1) {
-              state.reminders[idx] = {
-                ...state.reminders[idx],
-                ...payload,
-                status: 'pending',
-                error_log: null
-              };
-            }
-            showToast('Jadwal reminder berhasil diperbarui!', 'success');
-          } else {
-            state.reminders.unshift({
-              id: 'demo-' + Date.now(),
-              ...payload,
-              status: 'pending',
-              error_log: null,
-              created_at: new Date().toISOString()
-            });
-            showToast('Jadwal reminder baru berhasil ditambahkan!', 'success');
-          }
-          saveDemoRemindersToStorage();
-          resetForm();
-          renderDashboard();
-        } else {
-          // Supabase Mode
-          if (state.editingId) {
-            const { error } = await state.supabaseClient
-              .from('reminders')
-              .update({ ...payload, status: 'pending', error_log: null })
-              .eq('id', state.editingId);
-            if (error) throw error;
-            showToast('Jadwal reminder diperbarui di Supabase!', 'success');
-          } else {
-            const { error } = await state.supabaseClient
-              .from('reminders')
-              .insert({
-                ...payload,
-                user_id: state.user.id,
-                status: 'pending'
-              });
-            if (error) throw error;
-            showToast('Jadwal reminder tersimpan di Supabase!', 'success');
-          }
-          resetForm();
-          await loadReminders();
-        }
-      } catch (err) {
-        showToast('Gagal menyimpan jadwal: ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-70');
-      }
-    }
-
-    function startEditReminder(id) {
-      const item = state.reminders.find(r => r.id === id);
-      if (!item) return;
-
-      state.editingId = id;
-      document.getElementById('inputName').value = item.recipient_name || '';
-      document.getElementById('inputPhone').value = item.phone_number || '';
-      document.getElementById('inputSchedule').value = toLocalDateTimeInput(item.scheduled_at);
-      document.getElementById('inputRecurrence').value = item.recurrence || 'none';
-      document.getElementById('inputMessage').value = item.message || '';
-
-      document.getElementById('formTitle').textContent = 'Edit Jadwal Reminder';
-      document.getElementById('formSubtitle').textContent = 'Perubahan akan mengatur ulang status menjadi Menunggu';
-      document.getElementById('btnSubmitLabel').textContent = 'Perbarui Jadwal';
-      document.getElementById('btnCancelEdit').classList.remove('hidden');
-
-      updateCharCount();
-      handlePhoneInput();
-
-      // Scroll smoothly to form on mobile
-      document.getElementById('reminderForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function resetForm() {
-      state.editingId = null;
-      document.getElementById('reminderForm').reset();
-      document.getElementById('inputSchedule').value = toLocalDateTimeInput();
-      document.getElementById('formTitle').textContent = 'Buat Jadwal Reminder';
-      document.getElementById('formSubtitle').textContent = 'Isi detail penerima dan waktu pengiriman';
-      document.getElementById('btnSubmitLabel').textContent = 'Simpan Jadwal Reminder';
-      document.getElementById('btnCancelEdit').classList.add('hidden');
-      document.getElementById('btnFixPhone').classList.add('hidden');
-      updateCharCount();
-    }
-
-    function openDeleteModal(id) {
-      state.pendingDeleteId = id;
-      document.getElementById('deleteModal').classList.remove('hidden');
-    }
-
-    function closeDeleteModal() {
-      state.pendingDeleteId = null;
-      document.getElementById('deleteModal').classList.add('hidden');
-    }
-
-    async function confirmDeleteReminder() {
-      const id = state.pendingDeleteId;
-      if (!id) return;
-      closeDeleteModal();
-
-      try {
-        if (state.mode === 'demo') {
-          state.reminders = state.reminders.filter(r => r.id !== id);
-          saveDemoRemindersToStorage();
-          if (state.editingId === id) resetForm();
-          renderDashboard();
-          showToast('Jadwal reminder dihapus.', 'info');
-        } else {
-          const { error } = await state.supabaseClient
-            .from('reminders')
-            .delete()
-            .eq('id', id);
-          if (error) throw error;
-          if (state.editingId === id) resetForm();
-          showToast('Jadwal reminder dihapus dari Supabase.', 'info');
-          await loadReminders();
-        }
-      } catch (err) {
-        showToast('Gagal menghapus jadwal: ' + err.message, 'error');
-      }
-    }
-
-    // Demo Simulation: Mark a pending/failed reminder as sent
-    function markAsSentDemo(id) {
-      const item = state.reminders.find(r => r.id === id);
-      if (!item) return;
-
-      item.status = 'sent';
-      item.error_log = null;
-
-      // If recurring, automatically simulate creating the next occurrence
-      if (item.recurrence && item.recurrence !== 'none') {
-        const nextDate = new Date(item.scheduled_at);
-        if (item.recurrence === 'daily') nextDate.setDate(nextDate.getDate() + 1);
-        if (item.recurrence === 'weekly') nextDate.setDate(nextDate.getDate() + 7);
-        if (item.recurrence === 'monthly') nextDate.setMonth(nextDate.getMonth() + 1);
-
-        state.reminders.unshift({
-          id: 'demo-' + Date.now(),
-          recipient_name: item.recipient_name,
-          phone_number: item.phone_number,
-          message: item.message,
-          scheduled_at: nextDate.toISOString(),
-          recurrence: item.recurrence,
-          status: 'pending',
-          error_log: null,
-          created_at: new Date().toISOString()
-        });
-        showToast('Simulasi terkirim! Jadwal pengulangan berikutnya otomatis dibuat.', 'success');
-      } else {
-        showToast('Simulasi: Pesan ditandai sebagai Terkirim.', 'success');
-      }
-
-      saveDemoRemindersToStorage();
-      renderDashboard();
-    }
-
-    // =========================================================================
-    // 9. RENDERING STATS, FILTERS & REMINDER LIST
-    // =========================================================================
-    function renderDashboard() {
-      // 1. Update stats & tab counters
-      const counts = {
-        all: state.reminders.length,
-        pending: state.reminders.filter(r => r.status === 'pending').length,
-        sent: state.reminders.filter(r => r.status === 'sent').length,
-        failed: state.reminders.filter(r => r.status === 'failed').length
-      };
-
-      document.getElementById('statPending').textContent = counts.pending;
-      document.getElementById('statSent').textContent = counts.sent;
-      document.getElementById('statFailed').textContent = counts.failed;
-
-      document.getElementById('tabCountAll').textContent = counts.all;
-      document.getElementById('tabCountPending').textContent = counts.pending;
-      document.getElementById('tabCountSent').textContent = counts.sent;
-      document.getElementById('tabCountFailed').textContent = counts.failed;
-
-      // 2. Highlight active filter tab
-      document.querySelectorAll('.filter-tab').forEach(btn => {
-        const isActive = btn.dataset.filter === state.filterStatus;
-        btn.className = isActive
-          ? 'filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-emerald-600 text-white shadow-xs'
-          : 'filter-tab px-3.5 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer bg-slate-100 text-slate-600 hover:bg-slate-200';
-      });
-
-      // 3. Filter & sort reminders
-      const q = state.searchQuery.toLowerCase().trim();
-      const filtered = state.reminders
-        .filter(item => {
-          const matchStatus = state.filterStatus === 'all' || item.status === state.filterStatus;
-          if (!matchStatus) return false;
-          if (!q) return true;
-          return (
-            (item.recipient_name || '').toLowerCase().includes(q) ||
-            (item.phone_number || '').toLowerCase().includes(q) ||
-            (item.message || '').toLowerCase().includes(q)
-          );
-        })
-        .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at));
-
-      // 4. Render list
-      const listEl = document.getElementById('reminderList');
-      const emptyEl = document.getElementById('emptyState');
-
-      if (filtered.length === 0) {
-        listEl.innerHTML = '';
-        emptyEl.classList.remove('hidden');
-        return;
-      }
-
-      emptyEl.classList.add('hidden');
-      listEl.innerHTML = filtered.map(item => {
-        const statusBadge = {
-          pending: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Menunggu</span>',
-          sent: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Terkirim</span>',
-          failed: '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200"><span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>Gagal</span>'
-        }[item.status] || '';
-
-        const recurrenceBadge = item.recurrence && item.recurrence !== 'none'
-          ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-100"><i data-lucide="repeat" class="w-3 h-3"></i>${formatRecurrenceLabel(item.recurrence)}</span>`
-          : '';
-
-        const demoSendBtn = (state.mode === 'demo' && item.status !== 'sent')
-          ? `<button type="button" onclick="markAsSentDemo('${item.id}')" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 transition cursor-pointer" title="Simulasikan pesan terkirim">
-              <i data-lucide="check" class="w-3.5 h-3.5"></i> Tandai Terkirim
-            </button>`
-          : '';
-
-        const errorBox = item.status === 'failed' && item.error_log
-          ? `<p class="text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-2.5 py-1.5 mt-2">Error: ${escapeHtml(item.error_log)}</p>`
-          : '';
-
-        return `
-          <article class="rounded-2xl border border-slate-200 p-4 hover:border-emerald-300 transition bg-white">
-            <div class="flex flex-wrap items-start justify-between gap-2">
-              <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="text-sm font-bold text-slate-900 truncate">
-                    ${escapeHtml(item.recipient_name || 'Tanpa Nama')}
-                  </h3>
-                  <span class="text-xs font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
-                    +${escapeHtml(item.phone_number)}
-                  </span>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-500">
-                  <span class="inline-flex items-center gap-1 font-medium text-slate-600">
-                    <i data-lucide="calendar-clock" class="w-3.5 h-3.5 text-emerald-600"></i>
-                    ${formatIndonesianDateTime(item.scheduled_at)}
-                  </span>
-                  ${recurrenceBadge}
-                </div>
-              </div>
-              <div class="shrink-0">${statusBadge}</div>
+      list.innerHTML = data.map(r => `
+        <div class="border border-slate-200 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-semibold text-sm">${r.recipient_name}</span>
+              <span class="text-xs text-slate-500">(${r.phone_number})</span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-medium ${badges[r.status] || ''}">${r.status}</span>
+              <span class="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">${labels[r.recurrence] || r.recurrence}</span>
             </div>
-
-            <div class="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs sm:text-sm text-slate-700 whitespace-pre-line leading-relaxed">
-              ${escapeHtml(item.message)}
-            </div>
-            ${errorBox}
-
-            <div class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-end gap-2">
-              ${demoSendBtn}
-              <button
-                type="button"
-                onclick="startEditReminder('${item.id}')"
-                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
-              >
-                <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
-              </button>
-              <button
-                type="button"
-                onclick="openDeleteModal('${item.id}')"
-                class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium text-rose-700 bg-rose-50 hover:bg-rose-100 transition cursor-pointer"
-              >
-                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
-              </button>
-            </div>
-          </article>
-        `;
-      }).join('');
-
-      lucide.createIcons({ nodes: [listEl] });
+            <p class="text-sm text-slate-700 mt-1 whitespace-pre-wrap">${r.message}</p>
+            <p class="text-xs text-slate-400 mt-1">📅 ${new Date(r.scheduled_at).toLocaleString('id-ID')}</p>
+          </div>
+          <button onclick="deleteReminder('${r.id}')" class="text-xs text-rose-600 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg self-start sm:self-center">
+            Hapus
+          </button>
+        </div>
+      `).join('');
     }
 
-    function setFilter(status) {
-      state.filterStatus = status;
-      renderDashboard();
+    async function deleteReminder(id) {
+      if (!confirm('Hapus jadwal ini?')) return;
+      const { error } = await sb.from('reminders').delete().eq('id', id);
+      if (error) alert('Gagal menghapus: ' + error.message);
+      else loadReminders();
     }
 
-    function handleSearch(value) {
-      state.searchQuery = value;
-      renderDashboard();
+    function openSettings() {
+      document.getElementById('cfgUrl').value = localStorage.getItem('sb_url') || '';
+      document.getElementById('cfgKey').value = localStorage.getItem('sb_key') || '';
+      document.getElementById('settingsModal').classList.remove('hidden');
     }
 
-    // =========================================================================
-    // 10. FORM INTERACTION HELPERS
-    // =========================================================================
-    function handlePhoneInput() {
-      const input = document.getElementById('inputPhone');
-      const fixBtn = document.getElementById('btnFixPhone');
-      const cleaned = sanitizePhone(input.value);
-
-      if (cleaned.startsWith('08')) {
-        fixBtn.classList.remove('hidden');
-      } else {
-        fixBtn.classList.add('hidden');
-      }
-    }
-
-    function fixPhonePrefix() {
-      const input = document.getElementById('inputPhone');
-      const cleaned = sanitizePhone(input.value);
-      if (cleaned.startsWith('08')) {
-        input.value = '62' + cleaned.slice(1);
-      }
-      document.getElementById('btnFixPhone').classList.add('hidden');
-    }
-
-    function updateCharCount() {
-      const len = document.getElementById('inputMessage').value.length;
-      document.getElementById('charCount').textContent = `${len} karakter`;
-    }
-
-    function applyTemplate(key) {
-      const tpl = MESSAGE_TEMPLATES[key];
-      if (!tpl) return;
-      const name = document.getElementById('inputName').value.trim() || 'Kak';
-      document.getElementById('inputMessage').value = tpl.replace('{nama}', name);
-      updateCharCount();
-    }
-
-    // =========================================================================
-    // 11. SETTINGS & GUIDE MODALS + CLIPBOARD COPY
-    // =========================================================================
-    function openSettingsModal() {
-      const modal = document.getElementById('settingsModal');
-      document.querySelector(`input[name="appMode"][value="${state.mode}"]`).checked = true;
-      document.getElementById('cfgSupabaseUrl').value = state.supabaseConfig.url || '';
-      document.getElementById('cfgSupabaseKey').value = state.supabaseConfig.anonKey || '';
-      toggleSettingsFields();
-      modal.classList.remove('hidden');
-      lucide.createIcons({ nodes: [modal] });
-    }
-
-    function closeSettingsModal() {
+    function closeSettings() {
       document.getElementById('settingsModal').classList.add('hidden');
     }
 
-    function toggleSettingsFields() {
-      const selected = document.querySelector('input[name="appMode"]:checked')?.value || 'demo';
-      const sbFields = document.getElementById('supabaseConfigFields');
-      const demoReset = document.getElementById('demoResetBox');
-      const cardDemo = document.getElementById('cardModeDemo');
-      const cardSb = document.getElementById('cardModeSupabase');
-
-      if (selected === 'supabase') {
-        sbFields.classList.remove('hidden');
-        demoReset.classList.add('hidden');
-        cardSb.classList.add('border-emerald-500', 'bg-emerald-50/40');
-        cardDemo.classList.remove('border-emerald-500', 'bg-emerald-50/40');
-      } else {
-        sbFields.classList.add('hidden');
-        demoReset.classList.remove('hidden');
-        cardDemo.classList.add('border-emerald-500', 'bg-emerald-50/40');
-        cardSb.classList.remove('border-emerald-500', 'bg-emerald-50/40');
-      }
-    }
-
-    async function saveSettings() {
-      const selectedMode = document.querySelector('input[name="appMode"]:checked')?.value || 'demo';
-      const url = document.getElementById('cfgSupabaseUrl').value.trim().replace(/\/$/, '');
-      const anonKey = document.getElementById('cfgSupabaseKey').value.trim();
-
-      if (selectedMode === 'supabase') {
-        if (!url || !anonKey) {
-          showToast('Mohon isi Supabase Project URL dan Anon Key.', 'error');
-          return;
-        }
-        state.supabaseConfig = { url, anonKey };
-        localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(state.supabaseConfig));
-      }
-
-      state.mode = selectedMode;
-      localStorage.setItem(STORAGE_KEYS.MODE, selectedMode);
-      closeSettingsModal();
-      showToast(
-        selectedMode === 'supabase'
-          ? 'Konfigurasi Supabase disimpan! Silakan login.'
-          : 'Pengaturan disimpan (Mode Demo Lokal).',
-        'success'
-      );
-      await applyCurrentMode();
-    }
-
-    function resetDemoData() {
-      state.reminders = createDefaultDemoData();
-      saveDemoRemindersToStorage();
-      closeSettingsModal();
-      renderDashboard();
-      showToast('Data contoh Mode Demo berhasil dikembalikan.', 'info');
-    }
-
-    function openGuideModal() {
-      const modal = document.getElementById('guideModal');
-      modal.classList.remove('hidden');
-      lucide.createIcons({ nodes: [modal] });
-    }
-
-    function closeGuideModal() {
-      document.getElementById('guideModal').classList.add('hidden');
-    }
-
-    function switchGuideTab(tabName) {
-      document.querySelectorAll('.guide-panel').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`guidePanel-${tabName}`)?.classList.remove('hidden');
-
-      document.querySelectorAll('.guide-tab').forEach(btn => {
-        const active = btn.dataset.guideTab === tabName;
-        btn.className = active
-          ? 'guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 border-emerald-600 text-emerald-700 bg-white transition cursor-pointer'
-          : 'guide-tab px-3.5 py-2 text-xs font-semibold rounded-t-xl border-b-2 border-transparent text-slate-500 hover:text-slate-800 transition cursor-pointer';
-      });
-    }
-
-    // Reliable Clipboard Copy using execCommand (iFrame friendly)
-    function copyCodeBlock(elementId) {
-      const codeEl = document.getElementById(elementId);
-      if (!codeEl) return;
-      const text = codeEl.textContent;
-
+    function saveSettings() {
+      const rawUrl = document.getElementById('cfgUrl').value.trim();
+      const key = document.getElementById('cfgKey').value.trim();
+      if (!rawUrl || !key) return alert('URL dan Key wajib diisi!');
       try {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textarea);
-        showToast('Kode berhasil disalin ke clipboard!', 'success');
-      } catch (err) {
-        showToast('Gagal menyalin kode. Silakan blok dan salin manual.', 'error');
+        const cleanUrl = new URL(rawUrl).origin;
+        localStorage.setItem('sb_url', cleanUrl);
+        localStorage.setItem('sb_key', key);
+        closeSettings();
+        location.reload();
+      } catch {
+        alert('Format Project URL tidak valid.');
       }
     }
 
-    // Close modals on Escape key
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        closeSettingsModal();
-        closeGuideModal();
-        closeDeleteModal();
-      }
-    });
-
-    // Boot App
-    window.addEventListener('DOMContentLoaded', initApp);
+    init();
   </script>
 </body>
 </html>
